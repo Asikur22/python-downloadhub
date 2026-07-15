@@ -1,0 +1,55 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: downloadhub-backend
+    ports:
+      - "${BACKEND_PORT:-8000}:8000"
+    volumes:
+      - ./downloads:/downloads
+      - ./config:/config
+      - ./logs:/logs
+      - ./database:/database
+    environment:
+      - ARIA2_RPC_SECRET=${ARIA2_RPC_SECRET:-downloadhub_rpc_secret_12345}
+      - DATABASE_URL=sqlite+aiosqlite:////database/downloadhub.db
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: downloadhub-frontend
+    ports:
+      - "${FRONTEND_PORT:-3000}:3000"
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+x-casaos:
+  architectures:
+    - amd64
+    - arm64
+  main: frontend
+  author: Asiqur Rahman
+  category: Utilities
+  description:
+    en_us: A lightweight, self-hosted web application for downloading large files in the background on a remote server or homelab.
+  developer: Asiqur Rahman
+  hostname: ""
+  icon: "https://raw.githubusercontent.com/walkxcode/dashboard-icons/main/png/aria2.png"
+  index: /
+  is_uncontrolled: false
+  port_map: "8975"
+  scheme: http
+  store_app_id: downloadhub
+  tagline:
+    en_us: Self-hosted background downloader using aria2
+  title:
+    en_us: DownloadHub
