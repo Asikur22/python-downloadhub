@@ -64,9 +64,8 @@ async def start_aria2_subprocess(app: FastAPI = None):
     logger.info("Starting aria2c subprocess...")
     aria2_process = subprocess.Popen(
         cmd,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        text=True
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL
     )
     if app:
         app.state.aria2_process = aria2_process
@@ -74,9 +73,8 @@ async def start_aria2_subprocess(app: FastAPI = None):
     # Small check to ensure it started
     await asyncio.sleep(0.5)
     if aria2_process.poll() is not None:
-        stdout, stderr = aria2_process.communicate()
-        logger.error(f"aria2c process failed to start! code: {aria2_process.returncode}, stderr: {stderr}")
-        raise RuntimeError("Could not start aria2c downloader engine.")
+        logger.error(f"aria2c process failed to start! code: {aria2_process.returncode}")
+        raise RuntimeError("Could not start aria2c downloader engine. Check aria2.log for details.")
         
     logger.info(f"aria2c subprocess started successfully (PID: {aria2_process.pid})")
 
