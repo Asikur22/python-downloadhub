@@ -7,6 +7,7 @@ import DownloadList from './components/DownloadList';
 import SettingsPage from './components/SettingsPage';
 import { Settings, HealthInfo } from './types';
 import { formatBytes } from './utils/format';
+import packageJson from '../package.json';
 import { 
   LayoutDashboard, 
   Download, 
@@ -140,6 +141,14 @@ function MainLayout() {
               </p>
             </div>
           )}
+
+          {/* App Version */}
+          <div className="flex items-center justify-between text-[11px] font-medium text-slate-500 dark:text-gray-400 border-t border-slate-200 dark:border-white/5 pt-3">
+            <span className="text-slate-400 dark:text-gray-500 uppercase tracking-wider text-[10px] font-bold">Version</span>
+            <span className="px-2 py-0.5 bg-slate-200 dark:bg-slate-800/80 text-slate-600 dark:text-gray-300 font-semibold rounded-md border border-slate-300/30 dark:border-white/5">
+              v{packageJson.version}
+            </span>
+          </div>
 
           {/* Engine indicators */}
           <div className="space-y-2 border-t border-slate-200 dark:border-white/5 pt-3">
