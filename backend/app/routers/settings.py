@@ -1,8 +1,11 @@
-from fastapi import APIRouter, Depends, HTTPException, Request
+import os
+from collections import deque
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.database.session import get_db
 from app.schemas.setting import SettingsSchema
 from app.services.settings import get_db_settings, update_db_settings
+from app.core.config import settings
 import logging
 
 logger = logging.getLogger(__name__)
@@ -104,3 +107,52 @@ async def restart_engine(request: Request, db: AsyncSession = Depends(get_db)):
         return {"status": "success", "message": "Downloader engine restarted successfully"}
     else:
         raise HTTPException(status_code=500, detail="Downloader restart handler not initialized.")
+
+
+@router.get("/logs")
+async def list_logs():
+    try:
+        logs_dir = settings.LOGS_DIR
+        if not os.path.exists(logs_dir):
+            return []
+        
+        # Get log files
+        files = []
+        for f in os.listdir(logs_dir):
+            if f.endswith(".log"):
+                path = os.path.join(logs_dir, f)
+                if os.path.isfile(path):
+                    files.append({
+                        "name": f,
+                        "size": os.path.getsize(path),
+                        "modified": os.path.getmtime(path)
+                    })
+        return sorted(files, key=lambda x: x["name"])
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to list log files: {e}")
+
+
+@router.get("/logs/{log_name}")
+async def get_log_content(
+    log_name: str,
+    lines: int = Query(default=200, ge=1, le=2000)
+):
+    # Security check: prevent directory traversal and restrict to .log files
+    if "/" in log_name or "\\" in log_name or not log_name.endswith(".log"):
+        raise HTTPException(status_code=400, detail="Invalid log file name")
+        
+    log_path = os.path.join(settings.LOGS_DIR, log_name)
+    if not os.path.exists(log_path) or not os.path.isfile(log_path):
+        raise HTTPException(status_code=404, detail="Log file not found")
+        
+    try:
+        # Read the last N lines efficiently
+        with open(log_path, "r", encoding="utf-8", errors="ignore") as f:
+            lines_list = list(deque(f, maxlen=lines))
+        return {
+            "name": log_name,
+            "lines": lines_list,
+            "total_lines": len(lines_list)
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to read log file: {e}")

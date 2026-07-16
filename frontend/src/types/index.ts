@@ -43,3 +43,15 @@ export interface HealthInfo {
   aria2: 'connected' | 'disconnected';
   storage: StorageStats;
 }
+
+export interface LogFile {
+  name: string;
+  size: number;
+  modified: number;
+}
+
+export interface LogContent {
+  name: string;
+  lines: string[];
+  total_lines: number;
+}

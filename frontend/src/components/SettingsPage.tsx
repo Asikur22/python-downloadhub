@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
 import { Settings } from '../types';
-import { Save, Eye, EyeOff, ShieldCheck, RefreshCw } from 'lucide-react';
+import { Save, Eye, EyeOff, ShieldCheck, RefreshCw, Terminal, Settings as SettingsIcon } from 'lucide-react';
+import LogViewer from './LogViewer';
 
 export default function SettingsPage() {
   const queryClient = useQueryClient();
@@ -23,6 +24,7 @@ export default function SettingsPage() {
   const [showSecret, setShowSecret] = useState(false);
 
   const [restartingEngine, setRestartingEngine] = useState(false);
+  const [activeTab, setActiveTab] = useState<'config' | 'logs'>('config');
 
   // Query Settings
   const { data: dbSettings, isLoading } = useQuery<Settings>({
@@ -119,7 +121,7 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="space-y-8 max-w-4xl">
+    <div className="space-y-6 max-w-4xl">
       {/* Header */}
       <div>
         <h1 className="text-3xl font-extrabold tracking-tight text-slate-800 dark:text-white sm:text-4xl">
@@ -129,6 +131,37 @@ export default function SettingsPage() {
           Configure directories, network limits, download concurrency parameters, and UI themes.
         </p>
       </div>
+
+      {/* Tabs Selector Navigation */}
+      <div className="flex border-b border-slate-200 dark:border-white/10 space-x-8">
+        <button
+          type="button"
+          onClick={() => setActiveTab('config')}
+          className={`flex items-center gap-2 pb-3.5 text-sm font-bold border-b-2 transition-all cursor-pointer -mb-[2px] ${
+            activeTab === 'config'
+              ? 'border-indigo-500 text-indigo-600 dark:text-indigo-400 font-extrabold'
+              : 'border-transparent text-slate-500 hover:text-slate-800 dark:text-gray-400 dark:hover:text-white'
+          }`}
+        >
+          <SettingsIcon className="h-4 w-4" />
+          Configuration
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveTab('logs')}
+          className={`flex items-center gap-2 pb-3.5 text-sm font-bold border-b-2 transition-all cursor-pointer -mb-[2px] ${
+            activeTab === 'logs'
+              ? 'border-indigo-500 text-indigo-600 dark:text-indigo-400 font-extrabold'
+              : 'border-transparent text-slate-500 hover:text-slate-800 dark:text-gray-400 dark:hover:text-white'
+          }`}
+        >
+          <Terminal className="h-4 w-4" />
+          System Logs
+        </button>
+      </div>
+
+      {activeTab === 'config' ? (
+        <>
 
       {successMsg && (
         <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-sm font-semibold">
@@ -390,6 +423,10 @@ export default function SettingsPage() {
         </div>
 
       </form>
+      </>
+      ) : (
+        <LogViewer />
+      )}
     </div>
   );
 }
